@@ -16,13 +16,17 @@ export const placeOrderCOD = async (req, res) => {
     //Calculate Amount Using Items
     let amount = await items.reduce(async (acc, item) => {
       const product = await Product.findById(item.product);
-      return (await acc) + product.offerPrice * item.quantity
+      return (await acc) + product.offerPrice * item.quantity;
     }, 0);
 
     //Add Tax Charges (2%)
     amount += Math.floor(amount * 0.02);
     //Create Order
-    await Order.create({ userId, items, address, amount, paymentType: "COD",
+    await Order.create({ userId, 
+      items,
+      address,
+      amount,
+      paymentType: "COD",
   });
   return res.json({success: true, message:"order placed successfully"});
 }catch(error){
@@ -30,7 +34,7 @@ export const placeOrderCOD = async (req, res) => {
 }
 }
 
-// Place Order COD : /api/order/cod
+// Place Order COD : /api/order/stripe
 export const placeOrderStripe = async (req, res) => {
   try{
     const { items, address } = req.body;
@@ -51,14 +55,18 @@ export const placeOrderStripe = async (req, res) => {
         price: product.offerPrice,
         quantity: item.quantity,
       });
-      return (await acc) + product.offerPrice * item.quantity
+      return (await acc) + product.offerPrice * item.quantity;
     }, 0);
 
     //Add Tax Charges (2%)
     amount += Math.floor(amount * 0.02);
 
     //Create Order
-    const order = await Order.create({ userId, items, address, amount, paymentType: "Online",
+    const order = await Order.create({ userId,
+    items,
+    address,
+    amount,
+    paymentType: "Online",
 
     });
     //Stripe gate away installed
@@ -96,7 +104,7 @@ export const placeOrderStripe = async (req, res) => {
 };
 
 //Stripe webhook to verify payment actions : /stripe
-export const stripeWebhooks = async (request, response)=>{
+/*export const stripeWebhooks = async (request, response)=>{
   //STRIPE GATE WAY INITIALIZE
   const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
   const sig = request.headers["stripe-signature"];
@@ -111,8 +119,22 @@ export const stripeWebhooks = async (request, response)=>{
   }catch(error){
     response.status(400).send(`webhook Error: ${error.message}`)
 
-  }
+  }*/
+ export const stripeWebhooks = async (req, res) => {
+  const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+  const sig = req.headers["stripe-signature"];
+  let event;
 
+  try {
+    // use req.body directly (raw buffer)
+    event = stripeInstance.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error) {
+    return res.status(400).send(`Webhook Error: ${error.message}`);
+  }
   //Handle Event
   switch(event.type){
     case "payment_intent.succeeded":{

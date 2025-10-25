@@ -11,6 +11,7 @@ import addressRoute from "./routes/addressRoute.js";
 import orderRoute from "./routes/orderRoute.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhooks } from "./controllers/orderController.js";
+import bodyParser from "body-parser";
 
 
 dotenv.config(); // Load environment variables first
@@ -21,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 // Allow multiple origins
 const allowedOrigins = ["http://localhost:5173"];
 
-app.post('/stripe', express.raw({type: 'application/json'}), stripeWebhooks)
+app.post('/stripe', bodyParser.raw({type: 'application/json'}), stripeWebhooks)
 
 // Middleware configuration
 app.use(express.json());

@@ -12,7 +12,7 @@ export const sellerLogin = async (req, res) => {
     res.cookie("sellerToken", token, {
         httpOnly: true, //prevent client-side JS from accessing the cookie
         secure: process.env.NODE_ENV === "production", //Use secure cookies in production
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "strict", //CSRF protection
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", //CSRF protection
         maxAge: 7 * 24 * 60 * 60 * 1000, // cookie expiration time in 7 days
       });
     return  res.status(200).json({ success: true, message: "Seller login successfully" });
